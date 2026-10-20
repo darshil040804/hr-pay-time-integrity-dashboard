@@ -5,3 +5,6 @@ plotly
 faker
 openpyxl
 pytest
+openai
+python-dotenv
+pydantic
