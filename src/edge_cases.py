@@ -89,17 +89,26 @@ class EdgeCase(BaseModel):
         return records
 
 
-def build_tables(case: EdgeCase, reference: dict[str, pd.DataFrame] | None = None) -> dict[str, pd.DataFrame]:
-    """Turn a case's records into full tables, ready for rules.connect()."""
+def build_tables_from_records(records: dict[str, list[dict]],
+                              reference: dict[str, pd.DataFrame] | None = None) -> dict[str, pd.DataFrame]:
+    """Turn {table: [partial rows]} into full tables, ready for rules.connect().
+
+    Missing columns come from TEMPLATE_ROWS; missing reference tables from the CSVs.
+    """
     reference = reference if reference is not None else load_csv_tables()
     tables = {}
     for table in SCHEMA:
-        if table in case.records:
-            rows = [TEMPLATE_ROWS[table] | row for row in case.records[table]]
+        if table in records:
+            rows = [TEMPLATE_ROWS[table] | row for row in records[table]]
             tables[table] = coerce(pd.DataFrame(rows, columns=list(SCHEMA[table])), table)
         elif table in REFERENCE_TABLES:
             tables[table] = reference[table]
     return tables
+
+
+def build_tables(case: EdgeCase, reference: dict[str, pd.DataFrame] | None = None) -> dict[str, pd.DataFrame]:
+    """Turn a case's records into full tables, ready for rules.connect()."""
+    return build_tables_from_records(case.records, reference)
 
 
 def run_case(case: EdgeCase, reference: dict[str, pd.DataFrame] | None = None) -> pd.DataFrame:
