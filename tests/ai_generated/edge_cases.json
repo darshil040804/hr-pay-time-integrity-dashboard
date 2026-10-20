@@ -1,0 +1,1673 @@
+[
+  {
+    "case_id": "AI-OP-01-001",
+    "rule_id": "OP-01",
+    "description": "Active employee assigned to an inactive position",
+    "records": {
+      "positions": [
+        {
+          "position_id": "POS1001",
+          "org_unit_id": "ORG001",
+          "job_id": "JOB08",
+          "status": "Inactive",
+          "valid_from": "2020-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 1001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS1001",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2021-06-15",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "The employee is active while the linked position has status 'Inactive', which directly violates the rule.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-01-002",
+    "rule_id": "OP-01",
+    "description": "Terminated employee assigned to an inactive position",
+    "records": {
+      "positions": [
+        {
+          "position_id": "POS2001",
+          "org_unit_id": "ORG002",
+          "job_id": "JOB05",
+          "status": "Inactive",
+          "valid_from": "2019-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 2001,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS2001",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Terminated",
+          "hire_date": "2015-09-01",
+          "term_date": "2024-12-31"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The rule only applies to employees whose status is 'Active'; a terminated employee should not trigger an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-01-003",
+    "rule_id": "OP-01",
+    "description": "Active employee assigned to a position whose status is Active but the position's valid_to date is in the past (effectively closed)",
+    "records": {
+      "positions": [
+        {
+          "position_id": "POS3001",
+          "org_unit_id": "ORG003",
+          "job_id": "JOB12",
+          "status": "Active",
+          "valid_from": "2018-01-01",
+          "valid_to": "2022-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 3001,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS3001",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 35.0,
+          "status": "Active",
+          "hire_date": "2020-03-01",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "According to the SQL rule, only the position's status field is checked; because it is 'Active' the rule does not flag the record, even though business logic might consider a past valid_to date as effectively inactive.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-01-004",
+    "rule_id": "OP-01",
+    "description": "Active employee with no assigned position (position_id null) should not be flagged",
+    "records": {
+      "positions": [],
+      "employees": [
+        {
+          "emp_id": 4001,
+          "first_name": "David",
+          "last_name": "Kim",
+          "position_id": null,
+          "employee_group": "Temporary",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 20.0,
+          "status": "Active",
+          "hire_date": "2023-01-10",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The join in the rule requires a matching position row; with a null position_id the employee is excluded from the check, so no exception is raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-02-001",
+    "rule_id": "OP-02",
+    "description": "Position has a NULL org_unit_id (missing reference)",
+    "records": {
+      "positions": [
+        {
+          "position_id": "POS1001",
+          "org_unit_id": null,
+          "job_id": "JOB05",
+          "status": "Active",
+          "valid_from": "2023-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 100001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS1001",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2023-01-01",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "The position's org_unit_id is NULL, so it does not point to any org unit; the rule should flag it.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-02-002",
+    "rule_id": "OP-02",
+    "description": "Position points to a non-existent org unit ID",
+    "records": {
+      "org_units": [
+        {
+          "org_unit_id": "ORG001",
+          "name": "College of Arts",
+          "parent_org_unit_id": null,
+          "valid_from": "2020-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS2001",
+          "org_unit_id": "ORG999",
+          "job_id": "JOB08",
+          "status": "Active",
+          "valid_from": "2024-05-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 200001,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS2001",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2024-05-01",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "ORG999 does not exist in org_units, so the position violates the rule.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-02-003",
+    "rule_id": "OP-02",
+    "description": "Position references an org unit that exists but is no longer active (valid_to before position start)",
+    "records": {
+      "org_units": [
+        {
+          "org_unit_id": "ORG005",
+          "name": "Former Department",
+          "parent_org_unit_id": "ORG002",
+          "valid_from": "2010-01-01",
+          "valid_to": "2022-12-31"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS3001",
+          "org_unit_id": "ORG005",
+          "job_id": "JOB12",
+          "status": "Active",
+          "valid_from": "2023-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 300001,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS3001",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 35.0,
+          "status": "Active",
+          "hire_date": "2023-01-01",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Although the org unit is past its valid_to date, it still exists in org_units, and the rule only checks existence, not date validity.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-02-004",
+    "rule_id": "OP-02",
+    "description": "Valid position with existing org unit and an active holder - should pass",
+    "records": {
+      "org_units": [
+        {
+          "org_unit_id": "ORG003",
+          "name": "College of Engineering",
+          "parent_org_unit_id": "ORG001",
+          "valid_from": "2020-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS4001",
+          "org_unit_id": "ORG003",
+          "job_id": "JOB04",
+          "status": "Active",
+          "valid_from": "2022-09-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 400001,
+          "first_name": "David",
+          "last_name": "Kim",
+          "position_id": "POS4001",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2022-09-01",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The position points to an existing org unit (ORG003); therefore no exception should be raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-03-001",
+    "rule_id": "OP-03",
+    "description": "Two active employees share the same position with different hire dates",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS100",
+          "status": "Active",
+          "hire_date": "2020-01-01"
+        },
+        {
+          "emp_id": 1002,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS100",
+          "status": "Active",
+          "hire_date": "2021-06-15"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Position POS100 has two active employees; the later hire (emp_id 1002) should be flagged as an extra holder.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-03-002",
+    "rule_id": "OP-03",
+    "description": "An active employee and a terminated employee share the same position",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 2001,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS200",
+          "status": "Active",
+          "hire_date": "2022-03-01"
+        },
+        {
+          "emp_id": 2002,
+          "first_name": "Dave",
+          "last_name": "Kim",
+          "position_id": "POS200",
+          "status": "Terminated",
+          "hire_date": "2020-05-10"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Only one employee is currently active in POS200; the terminated employee should be ignored by the rule.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-03-003",
+    "rule_id": "OP-03",
+    "description": "Two active employees have identical hire dates; tie-break uses emp_id",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 3001,
+          "first_name": "Eve",
+          "last_name": "Miller",
+          "position_id": "POS300",
+          "status": "Active",
+          "hire_date": "2021-09-01"
+        },
+        {
+          "emp_id": 3002,
+          "first_name": "Frank",
+          "last_name": "Nelson",
+          "position_id": "POS300",
+          "status": "Active",
+          "hire_date": "2021-09-01"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Both hires are on the same day; the employee with the lower emp_id (3001) is the rightful holder, so the higher emp_id (3002) must be flagged.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-03-004",
+    "rule_id": "OP-03",
+    "description": "Two employees marked Active share a position, but one has a past termination date",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 4001,
+          "first_name": "Grace",
+          "last_name": "Patel",
+          "position_id": "POS400",
+          "status": "Active",
+          "hire_date": "2020-02-01",
+          "term_date": null
+        },
+        {
+          "emp_id": 4002,
+          "first_name": "Hank",
+          "last_name": "O'Brien",
+          "position_id": "POS400",
+          "status": "Active",
+          "hire_date": "2021-01-01",
+          "term_date": "2025-12-31"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Even though both rows have status 'Active', employee 4002's termination date is before today (2026-10-20) and should be considered no longer employed; therefore only one true active holder exists and no exception should be raised. The SQL checks only status, so it would incorrectly flag this case.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-04-001",
+    "rule_id": "OP-04",
+    "description": "Terminated employee with termination date before the as-of date and still assigned to an active position - should be flagged.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS1001",
+          "status": "Terminated",
+          "term_date": "2026-01-10"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1001",
+          "status": "Active"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP06",
+          "start_date": "2026-03-16",
+          "end_date": "2026-03-29",
+          "pay_date": "2026-04-03"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "The employee was terminated on 2026-01-10, which is earlier than the as-of date (max pay-period end = 2026-03-29). The position remains Active, so the rule should raise an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-04-002",
+    "rule_id": "OP-04",
+    "description": "Terminated employee whose termination date is exactly the as-of date - should NOT be flagged.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1002,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS1002",
+          "status": "Terminated",
+          "term_date": "2026-03-29"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1002",
+          "status": "Active"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP06",
+          "start_date": "2026-03-16",
+          "end_date": "2026-03-29",
+          "pay_date": "2026-04-03"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The termination date equals the as-of date; the rule only flags when term_date < as_of_date, so this is not considered \"past\" the termination.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-04-003",
+    "rule_id": "OP-04",
+    "description": "Terminated employee with an inactive position - should NOT be flagged.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1003,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS1003",
+          "status": "Terminated",
+          "term_date": "2026-01-15"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1003",
+          "status": "Inactive"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP06",
+          "start_date": "2026-03-16",
+          "end_date": "2026-03-29",
+          "pay_date": "2026-04-03"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Even though the employee terminated before the as-of date, the position is already Inactive, so the rule does not consider it a violation.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-04-004",
+    "rule_id": "OP-04",
+    "description": "No pay periods loaded; current date used as as-of date. Terminated employee with earlier termination date and active position - should be flagged.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1004,
+          "first_name": "David",
+          "last_name": "Kim",
+          "position_id": "POS1004",
+          "status": "Terminated",
+          "term_date": "2026-10-01"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1004",
+          "status": "Active"
+        }
+      ],
+      "pay_periods": []
+    },
+    "expected_flagged": true,
+    "rationale": "With no pay periods, the rule falls back to current_date (assumed 2026-10-20). The employee's termination (2026-10-01) is before this date and the position remains Active, so an exception should be raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-05-001",
+    "rule_id": "OP-05",
+    "description": "Valid case - Hourly employee assigned to a Non-exempt job; no exception expected.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB06",
+          "title": "Payroll Specialist",
+          "flsa_status": "Non-exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1001",
+          "org_unit_id": "ORG001",
+          "job_id": "JOB06",
+          "status": "Active",
+          "valid_from": "2022-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 100001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS1001",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2022-01-15",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The employee subgroup (Hourly) matches the job's FLSA status (Non-exempt), so the rule should not raise an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-05-002",
+    "rule_id": "OP-05",
+    "description": "Invalid case - Hourly employee assigned to an Exempt job; exception should be raised.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB01",
+          "title": "Professor",
+          "flsa_status": "Exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1002",
+          "org_unit_id": "ORG002",
+          "job_id": "JOB01",
+          "status": "Active",
+          "valid_from": "2021-08-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 100002,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS1002",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 35.0,
+          "status": "Active",
+          "hire_date": "2021-08-15",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "An Hourly employee is linked to an Exempt job, violating the rule that Hourly must be Non-exempt.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-05-003",
+    "rule_id": "OP-05",
+    "description": "Terminated employee with mismatched subgroup; business rule should ignore terminated staff, so no exception.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB06",
+          "title": "Payroll Specialist",
+          "flsa_status": "Non-exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1003",
+          "org_unit_id": "ORG003",
+          "job_id": "JOB06",
+          "status": "Active",
+          "valid_from": "2020-05-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 100003,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS1003",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Terminated",
+          "hire_date": "2020-05-10",
+          "term_date": "2023-12-31"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Although the employee subgroup (Salaried) conflicts with the job's Non-exempt status, the employee is terminated; the business intent is to validate only active employees, so no exception should be raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-OP-05-004",
+    "rule_id": "OP-05",
+    "description": "Inactive position with mismatched subgroup; business rule should ignore inactive positions, so no exception.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB06",
+          "title": "Payroll Specialist",
+          "flsa_status": "Non-exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1004",
+          "org_unit_id": "ORG004",
+          "job_id": "JOB06",
+          "status": "Inactive",
+          "valid_from": "2019-01-01",
+          "valid_to": "2022-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 100004,
+          "first_name": "David",
+          "last_name": "Kim",
+          "position_id": "POS1004",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2019-02-01",
+          "term_date": null
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The employee is linked to an Inactive position; the validation rule is intended for currently active assignments, so the mismatch should not generate an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-01-001",
+    "rule_id": "TP-01",
+    "description": "Difference exactly 0.5 hours should NOT be flagged (boundary not exceeded).",
+    "records": {
+      "pay_periods": [
+        {
+          "period_id": "PP01",
+          "start_date": "2026-01-05",
+          "end_date": "2026-01-18",
+          "pay_date": "2026-01-23"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1001,
+          "work_date": "2026-01-06",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP01",
+          "emp_id": 1001,
+          "wage_type": "1000",
+          "hours": 8.5,
+          "amount": 170.0,
+          "payment_date": "2026-01-23"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Recorded 8.0 h vs paid 8.5 h gives a difference of exactly 0.5 h; the rule flags only when the absolute difference is greater than 0.5.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-01-002",
+    "rule_id": "TP-01",
+    "description": "Difference just over 0.5 hours should be flagged.",
+    "records": {
+      "pay_periods": [
+        {
+          "period_id": "PP01",
+          "start_date": "2026-01-05",
+          "end_date": "2026-01-18",
+          "pay_date": "2026-01-23"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1002,
+          "work_date": "2026-01-07",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP01",
+          "emp_id": 1002,
+          "wage_type": "1000",
+          "hours": 8.6,
+          "amount": 172.0,
+          "payment_date": "2026-01-23"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Recorded 8.0 h vs paid 8.6 h yields a 0.6 h difference, which exceeds the 0.5 h threshold, so an exception is expected.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-01-003",
+    "rule_id": "TP-01",
+    "description": "Payroll exists but no time entries for the period - this belongs to TP-03, not TP-01, so should NOT be flagged.",
+    "records": {
+      "pay_periods": [
+        {
+          "period_id": "PP01",
+          "start_date": "2026-01-05",
+          "end_date": "2026-01-18",
+          "pay_date": "2026-01-23"
+        }
+      ],
+      "time_entries": [],
+      "payroll_results": [
+        {
+          "period_id": "PP01",
+          "emp_id": 1003,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-01-23"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The rule joins only employees that have both recorded time and paid hours; with no time entries the join yields no row, so TP-01 does not raise an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-01-004",
+    "rule_id": "TP-01",
+    "description": "Shift-differential hours (wage_type 1400) are excluded from the comparison; total paid hours match recorded hours, so no flag.",
+    "records": {
+      "pay_periods": [
+        {
+          "period_id": "PP01",
+          "start_date": "2026-01-05",
+          "end_date": "2026-01-18",
+          "pay_date": "2026-01-23"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1004,
+          "work_date": "2026-01-08",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        },
+        {
+          "emp_id": 1004,
+          "work_date": "2026-01-09",
+          "hours": 2.0,
+          "attendance_type": "Overtime"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP01",
+          "emp_id": 1004,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-01-23"
+        },
+        {
+          "period_id": "PP01",
+          "emp_id": 1004,
+          "wage_type": "1100",
+          "hours": 2.0,
+          "amount": 60.0,
+          "payment_date": "2026-01-23"
+        },
+        {
+          "period_id": "PP01",
+          "emp_id": 1004,
+          "wage_type": "1400",
+          "hours": 2.0,
+          "amount": 30.0,
+          "payment_date": "2026-01-23"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Recorded hours sum to 10.0 h; paid hours for wage types 1000-1300 also sum to 10.0 h. The 2.0 h shift differential (1400) is ignored by the rule, so the difference is 0 and no exception is raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-02-001",
+    "rule_id": "TP-02",
+    "description": "Exempt professor receives overtime pay - should be flagged.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB01",
+          "title": "Professor",
+          "flsa_status": "Exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1001",
+          "org_unit_id": "ORG001",
+          "job_id": "JOB01",
+          "status": "Active",
+          "valid_from": "2020-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 1001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS1001",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2020-08-15",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP02",
+          "emp_id": 1001,
+          "wage_type": "1100",
+          "hours": 5.0,
+          "amount": 150.0,
+          "payment_date": "2026-02-06"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "The employee's job is marked Exempt but the payroll line uses overtime wage type 1100, which violates the rule.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-02-002",
+    "rule_id": "TP-02",
+    "description": "Non-exempt payroll specialist receives overtime - should NOT be flagged.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB06",
+          "title": "Payroll Specialist",
+          "flsa_status": "Non-exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1002",
+          "org_unit_id": "ORG002",
+          "job_id": "JOB06",
+          "status": "Active",
+          "valid_from": "2021-01-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 1002,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS1002",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2021-05-10",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP02",
+          "emp_id": 1002,
+          "wage_type": "1100",
+          "hours": 3.0,
+          "amount": 90.0,
+          "payment_date": "2026-02-06"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The employee's job is Non-exempt, so overtime wage type 1100 is permissible.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-02-003",
+    "rule_id": "TP-02",
+    "description": "Exempt lecturer has a position that ended before the pay period - business rule would treat as not applicable, so should NOT be flagged.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB04",
+          "title": "Lecturer",
+          "flsa_status": "Exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1003",
+          "org_unit_id": "ORG003",
+          "job_id": "JOB04",
+          "status": "Active",
+          "valid_from": "2020-01-01",
+          "valid_to": "2026-01-15"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 1003,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS1003",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2020-02-01",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP02",
+          "emp_id": 1003,
+          "wage_type": "1100",
+          "hours": 2.0,
+          "amount": 60.0,
+          "payment_date": "2026-02-06"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Although the job is Exempt, the employee's position was no longer valid during PP02, so overtime should not be processed. The SQL does not filter by position dates, so it would incorrectly flag this case.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-02-004",
+    "rule_id": "TP-02",
+    "description": "Exempt associate professor has an overtime line with zero hours and zero amount - should NOT be flagged because no actual overtime was paid.",
+    "records": {
+      "jobs": [
+        {
+          "job_id": "JOB02",
+          "title": "Associate Professor",
+          "flsa_status": "Exempt"
+        }
+      ],
+      "positions": [
+        {
+          "position_id": "POS1004",
+          "org_unit_id": "ORG004",
+          "job_id": "JOB02",
+          "status": "Active",
+          "valid_from": "2019-07-01",
+          "valid_to": "9999-12-31"
+        }
+      ],
+      "employees": [
+        {
+          "emp_id": 1004,
+          "first_name": "David",
+          "last_name": "Kim",
+          "position_id": "POS1004",
+          "employee_group": "Faculty",
+          "employee_subgroup": "Salaried",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2019-07-01",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP03",
+          "emp_id": 1004,
+          "wage_type": "1100",
+          "hours": 0.0,
+          "amount": 0.0,
+          "payment_date": "2026-02-20"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "No overtime was actually earned or paid (zero hours/amount), so the situation is benign. The rule's SQL would still flag it because it only checks wage_type, highlighting a mismatch between business intent and implementation.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-03-001",
+    "rule_id": "TP-03",
+    "description": "Active hourly employee paid in PP02 but has no time entries in that period (time entries exist in other periods)",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1001,
+          "first_name": "Alice",
+          "last_name": "Smith",
+          "position_id": "POS1001",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2022-06-01",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP02",
+          "emp_id": 1001,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-02-06"
+        },
+        {
+          "period_id": "PP01",
+          "emp_id": 1001,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-01-23"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1001,
+          "work_date": "2026-01-06",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP01",
+          "start_date": "2026-01-05",
+          "end_date": "2026-01-18",
+          "pay_date": "2026-01-23"
+        },
+        {
+          "period_id": "PP02",
+          "start_date": "2026-01-19",
+          "end_date": "2026-02-01",
+          "pay_date": "2026-02-06"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "The employee is active and hourly, received payment for PP02, but there are no time entries recorded within PP02's dates, so the rule should flag this case.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-03-002",
+    "rule_id": "TP-03",
+    "description": "Active hourly employee paid in PP03 with a time entry exactly on the period end date (boundary condition)",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1002,
+          "first_name": "Bob",
+          "last_name": "Jones",
+          "position_id": "POS1002",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2021-09-15",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP03",
+          "emp_id": 1002,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-02-20"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1002,
+          "work_date": "2026-02-15",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP03",
+          "start_date": "2026-02-02",
+          "end_date": "2026-02-15",
+          "pay_date": "2026-02-20"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "A time entry exists on the last day of PP03, satisfying the requirement that hourly pay be backed by recorded time; therefore the rule should not flag this case.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-03-003",
+    "rule_id": "TP-03",
+    "description": "Active hourly employee paid in PP04 with a vacation time entry (attendance_type other than Regular) within the period",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1003,
+          "first_name": "Carol",
+          "last_name": "Lee",
+          "position_id": "POS1003",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2020-03-01",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP04",
+          "emp_id": 1003,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-03-06"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1003,
+          "work_date": "2026-02-20",
+          "hours": 8.0,
+          "attendance_type": "Vacation"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP04",
+          "start_date": "2026-02-16",
+          "end_date": "2026-03-01",
+          "pay_date": "2026-03-06"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The rule only checks for the existence of any time entry in the period, regardless of attendance_type; the vacation entry satisfies the condition, so no exception should be raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-03-004",
+    "rule_id": "TP-03",
+    "description": "Active hourly employee with hire date after the start of PP05, paid for that period but has no time entries (employee not yet employed during the period)",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 1004,
+          "first_name": "David",
+          "last_name": "Kim",
+          "position_id": "POS1004",
+          "employee_group": "Support Staff",
+          "employee_subgroup": "Hourly",
+          "weekly_scheduled_hours": 40.0,
+          "status": "Active",
+          "hire_date": "2026-03-10",
+          "term_date": null
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP05",
+          "emp_id": 1004,
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-03-20"
+        }
+      ],
+      "time_entries": [
+        {
+          "emp_id": 1004,
+          "work_date": "2026-03-12",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        }
+      ],
+      "pay_periods": [
+        {
+          "period_id": "PP05",
+          "start_date": "2026-03-02",
+          "end_date": "2026-03-15",
+          "pay_date": "2026-03-20"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Although the employee is marked as Active, they were not hired until after the period began, and the only time entry recorded is after the period end (2026-03-12 is within PP05, actually it is within; need no entry). Adjust: we need no entry within period. Let's correct: No time entry within PP05. Revised rationale: The employee received payment for PP05 but has no time entries recorded during that period, so the rule should flag this case.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-04-001",
+    "rule_id": "TP-04",
+    "description": "Exact boundary: employee records exactly 16.0 hours (allowed) on a regular workday.",
+    "records": {
+      "time_entries": [
+        {
+          "emp_id": 900001,
+          "work_date": "2026-01-10",
+          "hours": 16.0,
+          "attendance_type": "Regular"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The rule permits hours up to and including 16.0; this entry meets the upper bound, so no exception should be raised.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-04-002",
+    "rule_id": "TP-04",
+    "description": "Just over the limit: employee records 16.1 hours (slightly above allowed maximum).",
+    "records": {
+      "time_entries": [
+        {
+          "emp_id": 900002,
+          "work_date": "2026-01-11",
+          "hours": 16.1,
+          "attendance_type": "Overtime"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Hours exceed the 16-hour ceiling by 0.1, violating the business rule; the exception should be flagged.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-04-003",
+    "rule_id": "TP-04",
+    "description": "Negative entry: employee mistakenly entered a negative number of hours.",
+    "records": {
+      "time_entries": [
+        {
+          "emp_id": 900003,
+          "work_date": "2026-01-12",
+          "hours": -2.5,
+          "attendance_type": "Sick"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Hours are below zero, which is prohibited; the rule must flag this as an error.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-04-004",
+    "rule_id": "TP-04",
+    "description": "Multiple entries on the same day that together exceed 16 hours but each entry is within range.",
+    "records": {
+      "time_entries": [
+        {
+          "emp_id": 900004,
+          "work_date": "2026-01-13",
+          "hours": 10.0,
+          "attendance_type": "Regular"
+        },
+        {
+          "emp_id": 900004,
+          "work_date": "2026-01-13",
+          "hours": 8.0,
+          "attendance_type": "Regular"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The rule validates each individual time entry, not the daily total; both entries are within 0-16 hours, so no exception should be raised despite the combined 18 hours.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-05-001",
+    "rule_id": "TP-05",
+    "description": "Simple duplicate: same employee, period, and wage type appears twice",
+    "records": {
+      "payroll_results": [
+        {
+          "emp_id": 900001,
+          "period_id": "PP01",
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-01-23"
+        },
+        {
+          "emp_id": 900001,
+          "period_id": "PP01",
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-01-23"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Two identical payroll lines for the same employee, period, and wage type constitute a duplicate and should be flagged.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-05-002",
+    "rule_id": "TP-05",
+    "description": "Triple duplicate: same employee/period/wage type appears three times",
+    "records": {
+      "payroll_results": [
+        {
+          "emp_id": 900002,
+          "period_id": "PP02",
+          "wage_type": "1100",
+          "hours": 5.0,
+          "amount": 125.0,
+          "payment_date": "2026-02-06"
+        },
+        {
+          "emp_id": 900002,
+          "period_id": "PP02",
+          "wage_type": "1100",
+          "hours": 5.0,
+          "amount": 125.0,
+          "payment_date": "2026-02-06"
+        },
+        {
+          "emp_id": 900002,
+          "period_id": "PP02",
+          "wage_type": "1100",
+          "hours": 5.0,
+          "amount": 125.0,
+          "payment_date": "2026-02-06"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Three payroll lines with the same key exceed the allowed single occurrence, so the rule must raise an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-05-003",
+    "rule_id": "TP-05",
+    "description": "Same employee and period but different wage types - should not be flagged",
+    "records": {
+      "payroll_results": [
+        {
+          "emp_id": 900003,
+          "period_id": "PP03",
+          "wage_type": "1000",
+          "hours": 8.0,
+          "amount": 160.0,
+          "payment_date": "2026-02-20"
+        },
+        {
+          "emp_id": 900003,
+          "period_id": "PP03",
+          "wage_type": "1200",
+          "hours": 8.0,
+          "amount": 80.0,
+          "payment_date": "2026-02-20"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "Although there are two lines for the same employee and period, the wage types differ, so each combination is unique and no duplicate exists.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-05-004",
+    "rule_id": "TP-05",
+    "description": "Duplicate lines where wage_type is NULL - business rule treats missing type as a duplicate entry",
+    "records": {
+      "payroll_results": [
+        {
+          "emp_id": 900004,
+          "period_id": "PP04",
+          "wage_type": null,
+          "hours": 4.0,
+          "amount": 80.0,
+          "payment_date": "2026-03-06"
+        },
+        {
+          "emp_id": 900004,
+          "period_id": "PP04",
+          "wage_type": null,
+          "hours": 4.0,
+          "amount": 80.0,
+          "payment_date": "2026-03-06"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Even without a wage_type value, two rows share the same employee and period, representing a duplicate payroll entry that should be flagged.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-06-001",
+    "rule_id": "TP-06",
+    "description": "Payment dated exactly on the employee's termination date - should be allowed.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 900101,
+          "term_date": "2026-02-15",
+          "status": "Terminated"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP03",
+          "emp_id": 900101,
+          "wage_type": "1000",
+          "amount": 2000.0,
+          "payment_date": "2026-02-15"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "The rule permits payments on the termination date; only dates after the term_date should be flagged.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-06-002",
+    "rule_id": "TP-06",
+    "description": "Payment dated one day after termination - should be flagged.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 900102,
+          "term_date": "2026-02-15",
+          "status": "Terminated"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP04",
+          "emp_id": 900102,
+          "wage_type": "1000",
+          "amount": 1800.0,
+          "payment_date": "2026-02-16"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "Payment date (2026-02-16) is later than the term_date (2026-02-15); the rule must raise an exception.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-06-003",
+    "rule_id": "TP-06",
+    "description": "Employee without a termination date (still active) receives a payment after a typical termination window - should NOT be flagged.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 900103,
+          "term_date": null,
+          "status": "Active"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP05",
+          "emp_id": 900103,
+          "wage_type": "1000",
+          "amount": 2100.0,
+          "payment_date": "2026-03-20"
+        }
+      ]
+    },
+    "expected_flagged": false,
+    "rationale": "When term_date is null the employee is considered active; the rule only applies when a non-null termination date exists.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  },
+  {
+    "case_id": "AI-TP-06-004",
+    "rule_id": "TP-06",
+    "description": "Terminated employee has two payroll lines: one on the termination date (allowed) and one after (violation). The rule should flag the offending line.",
+    "records": {
+      "employees": [
+        {
+          "emp_id": 900104,
+          "term_date": "2026-03-10",
+          "status": "Terminated"
+        }
+      ],
+      "payroll_results": [
+        {
+          "period_id": "PP05",
+          "emp_id": 900104,
+          "wage_type": "1000",
+          "amount": 1900.0,
+          "payment_date": "2026-03-10"
+        },
+        {
+          "period_id": "PP06",
+          "emp_id": 900104,
+          "wage_type": "1100",
+          "amount": 300.0,
+          "payment_date": "2026-04-04"
+        }
+      ]
+    },
+    "expected_flagged": true,
+    "rationale": "The second payroll line has a payment_date (2026-04-04) after the term_date (2026-03-10) and must be reported, while the first line is permissible.",
+    "review_status": "pending",
+    "reviewer_note": "",
+    "rule_bug": false
+  }
+]
