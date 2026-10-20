@@ -1,0 +1,6 @@
+wage_type,description,eligible_flsa
+1000,Regular Pay,Both
+1100,Overtime Pay,Non-exempt
+1200,Vacation Pay,Both
+1300,Sick Pay,Both
+1400,Shift Differential,Non-exempt

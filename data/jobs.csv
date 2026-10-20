@@ -1,0 +1,19 @@
+job_id,title,flsa_status
+JOB01,Professor,Exempt
+JOB02,Associate Professor,Exempt
+JOB03,Assistant Professor,Exempt
+JOB04,Lecturer,Exempt
+JOB05,HR Generalist,Exempt
+JOB06,Payroll Specialist,Non-exempt
+JOB07,Accountant,Exempt
+JOB08,Administrative Assistant,Non-exempt
+JOB09,IT Analyst,Exempt
+JOB10,Custodian,Non-exempt
+JOB11,Groundskeeper,Non-exempt
+JOB12,Maintenance Technician,Non-exempt
+JOB13,Office Manager,Exempt
+JOB14,Student Services Coordinator,Non-exempt
+JOB15,Campus Safety Officer,Non-exempt
+JOB16,Temporary Clerk,Non-exempt
+JOB17,Seasonal Worker,Non-exempt
+JOB18,Food Service Worker,Non-exempt

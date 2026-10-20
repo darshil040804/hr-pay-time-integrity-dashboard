@@ -1,0 +1,12 @@
+rule_id,expected_count
+OP-01,6
+OP-02,4
+OP-03,3
+OP-04,5
+OP-05,5
+TP-01,8
+TP-02,4
+TP-03,5
+TP-04,6
+TP-05,4
+TP-06,3
